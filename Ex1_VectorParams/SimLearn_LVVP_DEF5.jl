@@ -11,6 +11,9 @@ using DifferentialEquations
 using Plots
 using Flux, DiffEqFlux
 
+# Create a name for saving ( basically a prefix )
+svname = "LV_learnparams"
+
 # -------------------------------------------------------
 println("Load ODE system")
 
@@ -42,8 +45,9 @@ observations = sol[1,:] # length 101 vector -- Note this is only one of the spec
 
 plot(sol)
 t = 0:0.1:10.0
-scatter!(t,A)
+scatter!(t,observations)
 
+savefig(joinpath(pwd(),"plots","$(svname)01data.pdf"))
 
 # -------------------------------------------------------
 println("Set up Flux learn")
@@ -89,6 +93,13 @@ println("Take a look at the results. How did we do?")
 print("Learned parameters: ")
 print(p_learned) # display the learned parameters. How close are they to the ground truth parameters?
 
-print("Ground truth parameters: ")
+print("\nGround truth parameters: ")
 print(p_groundtruth)
-scatter!(t,A)
+scatter!(t,observations)
+
+savefig(joinpath(pwd(),"plots","$(svname)02learnedTimeseries.pdf"))
+
+# plot how the losses (difference between data and learned model) shrink over time
+# (or at least we hope they shrink over time!)
+plot(losses,yaxis=:log)
+savefig(joinpath(pwd(),"plots","$(svname)03losses.pdf"))
