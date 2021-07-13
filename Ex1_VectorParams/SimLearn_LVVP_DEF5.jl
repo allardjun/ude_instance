@@ -1,10 +1,9 @@
 # Simulate and then learn VECTOR PARAMETERS (i.e., just a bunch of real variables)
 # Example system: the Lotka-Volterra 2-system of ODEs
 # Using the DiffEqFlux packages
-# Jun (jun.allard@uci) edits based on the Julia demo at:
+#
+# edited by Jun (jun.allard@uci) based on the Julia demo at:
 # https://julialang.org/blog/2019/01/fluxdiffeq/
-
-
 
 # -------------------------------------------------------
 
@@ -27,19 +26,19 @@ tspan = (0.0,10.0)
 # -------------------------------------------------------
 println("Simulate with ground truth parameters")
 
-p = [1.5,1.0,3.0,1.0]
-prob = ODEProblem(lotka_volterra,u0,tspan,p)
+p_groundtruth = [1.5,1.0,3.0,1.0]
+prob = ODEProblem(lotka_volterra,u0,tspan,p_groundtruth)
 
 sol = solve(prob)
 plot(sol)
 
 # -------------------------------------------------------
 println("Simulate discrete data with ground truth parameters")
+# So it's the same as above, but fewer timepoints
 
-p = [1.5,1.0,3.0,1.0]
-prob = ODEProblem(lotka_volterra,u0,tspan,p)
+prob = ODEProblem(lotka_volterra,u0,tspan,p_groundtruth)
 sol = solve(prob,Tsit5(),saveat=0.1)
-A = sol[1,:] # length 101 vector
+observations = sol[1,:] # length 101 vector -- Note this is only one of the species (the prey species, u[1])
 
 plot(sol)
 t = 0:0.1:10.0
@@ -49,17 +48,18 @@ scatter!(t,A)
 # -------------------------------------------------------
 println("Set up Flux learn")
 
-p = [2.2, 1.0, 2.0, 0.4] # Initial Parameter Vector
-params = Flux.params(p)
+p_learned = [2.2, 1.0, 2.0, 0.4] # Initial Parameter Vector
+# This variable, p_learned, will also hold the learning result
+params = Flux.params(p_learned)
 
 function predict_rd() # Our 1-layer "neural network"
-  solve(prob,Tsit5(),p=p,saveat=0.1)[1,:] # override with new parameters
+  solve(prob,Tsit5(),p=p_learned,saveat=0.1)[1,:] # override with new parameters
 end
 
 # this was the loss function in the example
 #loss_rd() = sum(abs2,x-1 for x in predict_rd()) # loss function
 
-loss_rd() = sum(abs2, A .- predict_rd()) # loss function
+loss_rd() = sum(abs2, observations .- predict_rd()) # loss function
 
 
 # -------------------------------------------------------
@@ -75,7 +75,7 @@ cb = function () #callback function to observe training
   display(lossvalue)
   push!(losses,lossvalue)
   # using `remake` to re-create our `prob` with current parameters `p`
-  display(plot(solve(remake(prob,p=p),Tsit5(),saveat=0.1),ylim=(0,6)))
+  display(plot(solve(remake(prob,p=p_learned),Tsit5(),saveat=0.1),ylim=(0,6)))
 end
 
 # Display the ODE with the initial parameter values.
@@ -86,5 +86,9 @@ Flux.train!(loss_rd, params, data, opt, cb = cb)
 # -------------------------------------------------------
 println("Take a look at the results. How did we do?")
 
-print(p) # display the learned parameters. How close are they to the ground truth parameters?
+print("Learned parameters: ")
+print(p_learned) # display the learned parameters. How close are they to the ground truth parameters?
+
+print("Ground truth parameters: ")
+print(p_groundtruth)
 scatter!(t,A)
