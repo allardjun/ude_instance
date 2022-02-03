@@ -267,32 +267,32 @@ c2 = :orange # RGBA(132/255,159/255,173/255,1) # Red
 c3 = :blue # RGBA(255/255,90/255,0,1) # Orange
 c4 = :purple # RGBA(153/255,50/255,204/255,1) # Purple
 
-p1 = plot(t,abs.(Array(solution) .- estimate)' .+ eps(Float32),
-          lw = 3, yaxis = :log, title = "Timeseries of UODE Error",
-          color = [3 :orange], xlabel = "t",
-          label = ["x(t)" "y(t)"],
-          titlefont = "Helvetica", legendfont = "Helvetica",
-          legend = :topright)
+# p1 = plot(t,abs.(Array(solution) .- estimate)' .+ eps(Float32),
+#           lw = 3, yaxis = :log, title = "Timeseries of UODE Error",
+#           color = [3 :orange], xlabel = "t",
+#           label = ["x(t)" "y(t)"],
+#           #titlefont = "Helvetica", legendfont = "Helvetica",
+#           legend = :topright)
 
 # Plot L₂
 p2 = plot3d(X̂[1,:], X̂[2,:], Ŷ[2,:], lw = 3,
      title = "Neural Network Fit of U2(t)", color = c1,
-     label = "Neural Network", xaxis = "x", yaxis="y",
-     titlefont = "Helvetica", legendfont = "Helvetica",
-     legend = :bottomright)
+     label = "Neural Network", xaxis = "x", yaxis="y")
+    #  titlefont = "Helvetica", legendfont = "Helvetica",
+    #  legend = :bottomright)
 plot!(X̂[1,:], X̂[2,:], Ȳ[2,:], lw = 3, label = "True Missing Term", color=c2)
 
 p3 = scatter(solution, color = [c1 c2], label = ["x data" "y data"],
              title = "Extrapolated Fit From Short Training Data",
-             titlefont = "Helvetica", legendfont = "Helvetica",
+             #titlefont = "Helvetica", legendfont = "Helvetica",
              markersize = 5)
 
 plot!(p3,true_solution_long, color = [c1 c2], linestyle = :dot, lw=5, label = ["True x(t)" "True y(t)"])
 plot!(p3,estimate_long, color = [c3 c4], lw=1, label = ["Estimated x(t)" "Estimated y(t)"])
 plot!(p3,[2.99,3.01],[0.0,10.0],lw=1,color=:black, label = nothing)
-annotate!([(1.5,13,text("Training \nData", 10, :center, :top, :black, "Helvetica"))])
+#annotate!([(1.5,13,text("Training \nData", 10, :center, :top, :black, "Helvetica"))])
 l = @layout [grid(1,2)
              grid(1,1)]
-plot(p1,p2,p3,layout = l)
+plot(p2,p3)#,layout = l)
 
 savefig(joinpath(pwd(),"plots","$(svname)07full_plot.pdf"))
