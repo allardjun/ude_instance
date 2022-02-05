@@ -76,7 +76,7 @@ data = Iterators.repeated((), 2500)
 opt = ADAM(0.1)
 cb = function () #callback function to observe training
   lossvalue = loss_rd()
-  display(lossvalue)
+  println(lossvalue)
   push!(losses,lossvalue)
   # using `remake` to re-create our `prob` with current parameters `p`
   display(plot(solve(remake(prob,p=p_learned),Tsit5(),saveat=0.1),ylim=(0,6)))
@@ -86,6 +86,8 @@ end
 cb()
 
 Flux.train!(loss_rd, params, data, opt, cb = cb)
+
+println("Hello world!")
 
 # -------------------------------------------------------
 println("Take a look at the results. How did we do?")
