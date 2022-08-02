@@ -45,6 +45,7 @@ end
 pinit = Lux.ComponentArray(p)
 callback(pinit, loss_neuralode(pinit)...; doplot=true)
 
+
 # use Optimization.jl to solve the problem
 adtype = Optimization.AutoZygote()
 
@@ -66,6 +67,20 @@ result_neuralode2 = Optimization.solve(optprob2,
 callback(result_neuralode2.u, loss_neuralode(result_neuralode2.u)...; doplot=true)
 
 
+# try to extract the NN
 
+println(Lux.cpu(Lux.apply(dudt2, Lux.gpu([0]), result_neuralode2.u, st))[1])
 
-println(Lux.cpu(Lux.apply(dudt2, Lux.gpu([0]), p, st))
+nn_extraction = zeros(Float64, 128)
+uvalues = reshape(collect(range(0.0f0, 5f0, 128)), (1, 128))
+
+for i = 1:128
+  nn_extraction[i] = Lux.cpu(Lux.apply(dudt2, Lux.gpu([uvalues[i]]), result_neuralode2.u, st))[1][1]
+end
+
+println(nn_extraction)
+
+plt2 = Plots.scatter(uvalues, nn_extraction'; label="Predictions", markersize=3)
+Plots.scatter!(plt2, uvalues, 5 .- 2 .*uvalues)
+
+display(plot(plt2))
